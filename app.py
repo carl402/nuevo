@@ -160,20 +160,25 @@ def create_app():
         # Guardar resultados en simulation_results
         summary = results.get("summary", {})
         import json
-        sim_result = SimulationResult(
-            report_id=r.id,
-            mean_value=summary.get("mean"),
-            std_dev=summary.get("std"),
-            variance_value=summary.get("variance"),
-            min_value=summary.get("min"),
-            max_value=summary.get("max"),
-            percentile_5=summary.get("percentile_5"),
-            percentile_95=summary.get("percentile_95"),
-            median_value=summary.get("median"),
-            chart_data=json.dumps(results.get('charts', {}))
-        )
-        db.session.add(sim_result)
-        db.session.commit()
+        try:
+            sim_result = SimulationResult(
+                report_id=r.id,
+                mean_value=summary.get("mean"),
+                std_dev=summary.get("std"),
+                variance_value=summary.get("variance"),
+                min_value=summary.get("min"),
+                max_value=summary.get("max"),
+                percentile_5=summary.get("percentile_5"),
+                percentile_95=summary.get("percentile_95"),
+                median_value=summary.get("median"),
+                chart_data=json.dumps(results.get('charts', {}))
+            )
+            db.session.add(sim_result)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error guardando resultados: {e}", "danger")
+            return redirect(url_for("projects_list"))
         flash("Simulación ejecutada y reporte guardado", "success")
         return redirect(url_for("report_view", report_id=r.id))
 
