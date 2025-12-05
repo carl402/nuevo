@@ -159,6 +159,11 @@ def create_app():
             median_value=summary.get("median")
         )
         db.session.add(sim_result)
+        
+        # Guardar gráficos en la sesión para mostrar en el reporte
+        from flask import session
+        session[f'charts_{r.id}'] = results.get('charts', {})
+        
         db.session.commit()
         flash("Simulación ejecutada y reporte guardado", "success")
         return redirect(url_for("report_view", report_id=r.id))

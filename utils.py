@@ -77,7 +77,10 @@ def simulate_monte_carlo(variables, iterations=1000, seed=None):
 
 def generate_charts(data):
     """Genera histograma y curva de densidad como imágenes base64"""
-    plt.style.use('seaborn-v0_8')
+    try:
+        plt.style.use('seaborn-v0_8')
+    except:
+        plt.style.use('default')
     
     # Histograma
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
@@ -91,10 +94,14 @@ def generate_charts(data):
     
     # Curva de densidad
     ax2.hist(data, bins=30, density=True, alpha=0.7, color='lightgreen', edgecolor='black')
-    from scipy import stats
-    x = np.linspace(data.min(), data.max(), 100)
-    kde = stats.gaussian_kde(data)
-    ax2.plot(x, kde(x), 'r-', linewidth=2, label='Densidad')
+    try:
+        from scipy import stats
+        x = np.linspace(data.min(), data.max(), 100)
+        kde = stats.gaussian_kde(data)
+        ax2.plot(x, kde(x), 'r-', linewidth=2, label='Densidad')
+    except ImportError:
+        # Fallback sin scipy
+        pass
     ax2.set_title('Curva de Densidad')
     ax2.set_xlabel('Valor')
     ax2.set_ylabel('Densidad')

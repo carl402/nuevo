@@ -93,6 +93,8 @@ class Report(db.Model):
     def results(self):
         result = SimulationResult.query.filter_by(report_id=self.id).first()
         if result:
+            from flask import session
+            charts = session.get(f'charts_{self.id}', {})
             return {
                 "summary": {
                     "mean": float(result.mean_value or 0),
@@ -103,9 +105,10 @@ class Report(db.Model):
                     "median": float(result.median_value or 0),
                     "percentile_5": float(result.percentile_5 or 0),
                     "percentile_95": float(result.percentile_95 or 0)
-                }
+                },
+                "charts": charts
             }
-        return {"summary": {}}
+        return {"summary": {}, "charts": {}}
 
 
 class SimulationResult(db.Model):

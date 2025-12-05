@@ -96,9 +96,9 @@
         <div class="card-body">
           <table class="table table-sm">
             <tr><td><strong>Percentil 5%:</strong></td><td>{{ "%.4f"|format(report.results.summary.percentile_5) }}</td></tr>
-            <tr><td><strong>Percentil 25%:</strong></td><td>{{ "%.4f"|format(report.results.summary.percentiles.p25) }}</td></tr>
-            <tr><td><strong>Percentil 50% (Mediana):</strong></td><td>{{ "%.4f"|format(report.results.summary.percentiles.p50) }}</td></tr>
-            <tr><td><strong>Percentil 75%:</strong></td><td>{{ "%.4f"|format(report.results.summary.percentiles.p75) }}</td></tr>
+            <tr><td><strong>Percentil 25%:</strong></td><td>{{ "%.4f"|format(report.results.summary.get('percentiles', {}).get('p25', 0)) }}</td></tr>
+            <tr><td><strong>Percentil 50% (Mediana):</strong></td><td>{{ "%.4f"|format(report.results.summary.median) }}</td></tr>
+            <tr><td><strong>Percentil 75%:</strong></td><td>{{ "%.4f"|format(report.results.summary.get('percentiles', {}).get('p75', 0)) }}</td></tr>
             <tr><td><strong>Percentil 95%:</strong></td><td>{{ "%.4f"|format(report.results.summary.percentile_95) }}</td></tr>
           </table>
         </div>
