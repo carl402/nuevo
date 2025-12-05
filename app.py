@@ -127,7 +127,7 @@ def create_app():
         db.session.add(var)
         db.session.commit()
         flash("Variable añadida", "success")
-        return redirect(url_for("projects_list"))
+        return redirect(url_for("projects_list") + f"?open_config={project_id}")
 
     @app.route("/projects/<int:project_id>/simulate", methods=["POST"])
     @login_required
@@ -147,6 +147,7 @@ def create_app():
         
         # Guardar resultados en simulation_results
         summary = results.get("summary", {})
+        import json
         sim_result = SimulationResult(
             report_id=r.id,
             mean_value=summary.get("mean"),
@@ -156,14 +157,10 @@ def create_app():
             max_value=summary.get("max"),
             percentile_5=summary.get("percentile_5"),
             percentile_95=summary.get("percentile_95"),
-            median_value=summary.get("median")
+            median_value=summary.get("median"),
+            chart_data=json.dumps(results.get('charts', {}))
         )
         db.session.add(sim_result)
-        
-        # Guardar gráficos en la sesión para mostrar en el reporte
-        from flask import session
-        session[f'charts_{r.id}'] = results.get('charts', {})
-        
         db.session.commit()
         flash("Simulación ejecutada y reporte guardado", "success")
         return redirect(url_for("report_view", report_id=r.id))
@@ -207,7 +204,8 @@ def create_app():
         r = Report.query.get_or_404(report_id)
         html = render_template("report_pdf.html", report=r)
         try:
-            pdf_file = HTML(string=html).write_pdf()
+            html_doc = HTML(string=html)
+            pdf_file = html_doc.write_pdf()
             return send_file(io.BytesIO(pdf_file), mimetype="application/pdf", as_attachment=True, download_name=f"report_{r.id}.pdf")
         except Exception as e:
             flash(f"Error generando PDF: {e}", "danger")

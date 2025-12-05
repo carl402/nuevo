@@ -78,43 +78,35 @@ def simulate_monte_carlo(variables, iterations=1000, seed=None):
 def generate_charts(data):
     """Genera histograma y curva de densidad como imágenes base64"""
     try:
-        plt.style.use('seaborn-v0_8')
-    except:
         plt.style.use('default')
-    
-    # Histograma
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-    
-    # Histograma
-    ax1.hist(data, bins=30, alpha=0.7, color='skyblue', edgecolor='black')
-    ax1.set_title('Histograma de Resultados')
-    ax1.set_xlabel('Valor')
-    ax1.set_ylabel('Frecuencia')
-    ax1.grid(True, alpha=0.3)
-    
-    # Curva de densidad
-    ax2.hist(data, bins=30, density=True, alpha=0.7, color='lightgreen', edgecolor='black')
-    try:
-        from scipy import stats
-        x = np.linspace(data.min(), data.max(), 100)
-        kde = stats.gaussian_kde(data)
-        ax2.plot(x, kde(x), 'r-', linewidth=2, label='Densidad')
-    except ImportError:
-        # Fallback sin scipy
-        pass
-    ax2.set_title('Curva de Densidad')
-    ax2.set_xlabel('Valor')
-    ax2.set_ylabel('Densidad')
-    ax2.legend()
-    ax2.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    
-    # Convertir a base64
-    buffer = io.BytesIO()
-    plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
-    buffer.seek(0)
-    chart_base64 = base64.b64encode(buffer.getvalue()).decode()
-    plt.close()
-    
-    return {"histogram_density": chart_base64}
+        
+        # Crear figura
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+        
+        # Histograma
+        ax1.hist(data, bins=30, alpha=0.7, color='skyblue', edgecolor='black')
+        ax1.set_title('Histograma de Resultados')
+        ax1.set_xlabel('Valor')
+        ax1.set_ylabel('Frecuencia')
+        ax1.grid(True, alpha=0.3)
+        
+        # Curva de densidad (simplificada)
+        ax2.hist(data, bins=30, density=True, alpha=0.7, color='lightgreen', edgecolor='black')
+        ax2.set_title('Distribución de Densidad')
+        ax2.set_xlabel('Valor')
+        ax2.set_ylabel('Densidad')
+        ax2.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        
+        # Convertir a base64
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+        buffer.seek(0)
+        chart_base64 = base64.b64encode(buffer.getvalue()).decode()
+        plt.close()
+        
+        return {"histogram_density": chart_base64}
+    except Exception as e:
+        print(f"Error generando gráficos: {e}")
+        return {}

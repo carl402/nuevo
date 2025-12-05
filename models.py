@@ -93,8 +93,13 @@ class Report(db.Model):
     def results(self):
         result = SimulationResult.query.filter_by(report_id=self.id).first()
         if result:
-            from flask import session
-            charts = session.get(f'charts_{self.id}', {})
+            import json
+            charts = {}
+            if result.chart_data:
+                try:
+                    charts = json.loads(result.chart_data)
+                except:
+                    charts = {}
             return {
                 "summary": {
                     "mean": float(result.mean_value or 0),
@@ -123,4 +128,5 @@ class SimulationResult(db.Model):
     percentile_5 = db.Column(db.Numeric(15, 6))
     percentile_95 = db.Column(db.Numeric(15, 6))
     median_value = db.Column(db.Numeric(15, 6))
+    chart_data = db.Column(db.Text)  # Para guardar gráficos base64
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
