@@ -1,0 +1,13 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+#wrapper.toggled #sidebar-wrapper {
+  margin-left: -250px;
+}
+#sidebar-wrapper {
+  width: 250px;
+}
+#page-content-wrapper {
+  width: 100%;
+}
+.sidebar-heading { padding: 1rem 1.25rem; font-weight: bold; }

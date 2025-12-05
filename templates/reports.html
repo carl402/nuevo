@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Reportes</h2>
+
+<form class="row g-3 mb-3" method="get" action="{{ url_for('reports_list') }}">
+  <div class="col-auto">
+    <input name="project" class="form-control" placeholder="Buscar por proyecto">
+  </div>
+  <div class="col-auto">
+    <input name="date" type="date" class="form-control">
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-primary">Buscar</button>
+  </div>
+</form>
+
+<table class="table">
+  <thead>
+    <tr><th>Proyecto</th><th>Fecha</th><th>Nombre</th><th>Acciones</th></tr>
+  </thead>
+  <tbody>
+    {% for r in reports %}
+      <tr>
+        <td>{{ r.project.name }}</td>
+        <td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>{{ r.name }}</td>
+        <td>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('report_view', report_id=r.id) }}">Ver</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('report_download_pdf', report_id=r.id) }}">PDF</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('report_download_docx', report_id=r.id) }}">DOC</a>
+          <form method="post" action="{{ url_for('report_delete', report_id=r.id) }}" style="display:inline">
+            <button class="btn btn-sm btn-danger">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if deleted %}
+  <div class="alert alert-warning">
+    <h5>Papelera</h5>
+    <ul>
+      {% for d in deleted %}
+        <li>
+          {{ d.name }} - eliminado {{ d.deleted_at }}
+          <form method="post" action="{{ url_for('report_recover', report_id=d.id) }}" style="display:inline">
+            <button class="btn btn-sm btn-success">Recuperar</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+{% endblock %}

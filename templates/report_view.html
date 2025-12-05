@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>{{ report.name }}</h3>
+<p>Proyecto: {{ report.project.name }}</p>
+<p>Generado: {{ report.created_at }}</p>
+
+<h4>Métricas</h4>
+<ul>
+  {% for k, v in report.results.summary.items() %}
+    <li><strong>{{ k }}:</strong> {{ v }}</li>
+  {% endfor %}
+</ul>
+
+<div class="mb-3">
+  <a class="btn btn-primary" href="{{ url_for('report_download_pdf', report_id=report.id) }}">Descargar PDF</a>
+  <a class="btn btn-secondary" href="{{ url_for('report_download_docx', report_id=report.id) }}">Descargar DOC</a>
+  <a class="btn btn-outline-dark" href="{{ url_for('reports_list') }}">Cerrar</a>
+</div>
+
+{% endblock %}

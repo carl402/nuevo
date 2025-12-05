@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Usuarios</h2>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <h5>Crear Usuario</h5>
+    <form method="post" action="{{ url_for('users_create') }}">
+      <div class="row">
+        <div class="col-md-4 mb-2"><input name="first_name" placeholder="Nombre" class="form-control" required></div>
+        <div class="col-md-4 mb-2"><input name="last_name" placeholder="Apellido" class="form-control"></div>
+        <div class="col-md-4 mb-2"><input name="email" placeholder="Email" class="form-control" required></div>
+      </div>
+      <div class="row">
+        <div class="col-md-4 mb-2"><input name="password" placeholder="Contraseña" class="form-control" required></div>
+        <div class="col-md-4 mb-2">
+          <select name="role" class="form-select">
+            <option>Analista</option>
+            <option>Administrador</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-success">Crear</button>
+    </form>
+  </div>
+</div>
+
+<table class="table">
+  <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr></thead>
+  <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.full_name }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.role }}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ u.id }}">Editar</button>
+          <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#passwordModal{{ u.id }}">Cambiar Contraseña</button>
+          {% if u.id != current_user.id %}
+          <form method="post" action="{{ url_for('users_delete', user_id=u.id) }}" style="display:inline" onsubmit="return confirm('¿Eliminar usuario?')">
+            <button class="btn btn-sm btn-outline-danger">Eliminar</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+
+      <!-- Edit Modal -->
+      <div class="modal fade" id="editModal{{ u.id }}">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5>Editar Usuario</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{{ url_for('users_edit', user_id=u.id) }}">
+              <div class="modal-body">
+                <div class="mb-2"><input name="first_name" value="{{ u.first_name }}" placeholder="Nombre" class="form-control" required></div>
+                <div class="mb-2"><input name="last_name" value="{{ u.last_name or '' }}" placeholder="Apellido" class="form-control"></div>
+                <div class="mb-2"><input name="email" value="{{ u.email }}" placeholder="Email" class="form-control" required></div>
+                <div class="mb-2">
+                  <select name="role" class="form-select">
+                    <option {% if u.role == 'Analista' %}selected{% endif %}>Analista</option>
+                    <option {% if u.role == 'Administrador' %}selected{% endif %}>Administrador</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary">Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Password Modal -->
+      <div class="modal fade" id="passwordModal{{ u.id }}">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5>Cambiar Contraseña</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{{ url_for('users_change_password', user_id=u.id) }}">
+              <div class="modal-body">
+                <div class="mb-2"><input name="new_password" type="password" placeholder="Nueva contraseña" class="form-control" required></div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-warning">Cambiar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}
