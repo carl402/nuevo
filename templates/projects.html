@@ -72,11 +72,11 @@
         {% endfor %}
         
         <h6>Agregar Variable</h6>
-        <form method="post" action="{{ url_for('variable_add', project_id=p.id) }}">
+        <form id="varForm{{ p.id }}" onsubmit="addVariable(event, {{ p.id }})">
           <div class="row mb-2">
             <div class="col-6"><input name="var_name" placeholder="Nombre" class="form-control" required></div>
             <div class="col-6">
-              <select name="var_dist" class="form-select" onchange="showParams(this, {{ p.id }});">
+              <select name="var_dist" class="form-select" onchange="showParams(this, '{{ p.id }}')">
                 <option value="normal">Normal</option>
                 <option value="uniform">Uniforme</option>
                 <option value="triangular">Triangular</option>
@@ -89,8 +89,13 @@
               <div class="col-6"><input name="std" placeholder="Desv. Est." class="form-control" value="15"></div>
             </div>
           </div>
-          <button class="btn btn-success">Agregar Variable</button>
+          <button type="submit" class="btn btn-success">Agregar Variable</button>
         </form>
+        <div id="variables{{ p.id }}">
+          {% for v in p.variables %}
+            <div class="alert alert-info">{{ v.name }} - {{ v.distribution|title }}</div>
+          {% endfor %}
+        </div>
         
         <hr>
         <h6>Ejecutar Simulación</h6>
@@ -112,8 +117,8 @@
 
 <script>
 function showParams(select, projectId) {
-  const params = document.getElementById('params' + projectId);
-  const dist = select.value;
+  var params = document.getElementById('params' + projectId);
+  var dist = select.value;
   if (dist === 'normal') {
     params.innerHTML = '<div class="row mb-2"><div class="col-6"><input name="mean" placeholder="Media" class="form-control" value="50"></div><div class="col-6"><input name="std" placeholder="Desv. Est." class="form-control" value="15"></div></div>';
   } else if (dist === 'uniform') {
@@ -123,11 +128,47 @@ function showParams(select, projectId) {
   }
 }
 
+// Función para agregar variable sin cerrar modal
+function addVariable(event, projectId) {
+  event.preventDefault();
+  var form = event.target;
+  var formData = new FormData(form);
+  
+  fetch('/projects/' + projectId + '/variables/add', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Agregar variable a la lista
+      var variablesDiv = document.getElementById('variables' + projectId);
+      var newVar = document.createElement('div');
+      newVar.className = 'alert alert-info';
+      newVar.textContent = data.variable.name + ' - ' + data.variable.distribution;
+      variablesDiv.appendChild(newVar);
+      
+      // Limpiar formulario
+      form.reset();
+      showParams(form.querySelector('select'), projectId);
+      
+      // Actualizar contador en tabla
+      location.reload();
+    } else {
+      alert('Error: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error al agregar variable');
+  });
+}
+
 // Auto-abrir modal si se creó un proyecto
-const urlParams = new URLSearchParams(window.location.search);
-const openConfig = urlParams.get('open_config');
+var urlParams = new URLSearchParams(window.location.search);
+var openConfig = urlParams.get('open_config');
 if (openConfig) {
-  const modal = new bootstrap.Modal(document.getElementById('configModal' + openConfig));
+  var modal = new bootstrap.Modal(document.getElementById('configModal' + openConfig));
   modal.show();
   // Limpiar URL
   window.history.replaceState({}, document.title, window.location.pathname);

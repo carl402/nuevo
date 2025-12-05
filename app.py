@@ -107,39 +107,51 @@ def create_app():
     @app.route("/projects/<int:project_id>/variables/add", methods=["POST"])
     @login_required
     def variable_add(project_id):
-        p = Project.query.get_or_404(project_id)
-        name = request.form.get("var_name")
-        dist = request.form.get("var_dist").lower()
-        
-        var = Variable(project=p, name=name, distribution=dist)
-        
-        if dist == "normal":
-            var.mean = request.form.get("mean", 50)
-            var.std_dev = request.form.get("std", 15)
-        elif dist == "uniform":
-            var.min_value = request.form.get("low", 0)
-            var.max_value = request.form.get("high", 100)
-        elif dist == "triangular":
-            var.min_value = request.form.get("left", 10)
-            var.mode_value = request.form.get("mode", 50)
-            var.max_value = request.form.get("right", 90)
+        try:
+            p = Project.query.get_or_404(project_id)
+            name = request.form.get("var_name")
+            dist = request.form.get("var_dist").lower()
+            
+            var = Variable(project=p, name=name, distribution=dist)
+            
+            if dist == "normal":
+                var.mean = request.form.get("mean", 50)
+                var.std_dev = request.form.get("std", 15)
+            elif dist == "uniform":
+                var.min_value = request.form.get("low", 0)
+                var.max_value = request.form.get("high", 100)
+            elif dist == "triangular":
+                var.min_value = request.form.get("left", 10)
+                var.mode_value = request.form.get("mode", 50)
+                var.max_value = request.form.get("right", 90)
 
-        db.session.add(var)
-        db.session.commit()
-        flash("Variable añadida", "success")
-        return redirect(url_for("projects_list") + f"?open_config={project_id}")
+            db.session.add(var)
+            db.session.commit()
+            
+            return {"success": True, "variable": {"name": name, "distribution": dist.title()}}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
 
     @app.route("/projects/<int:project_id>/simulate", methods=["POST"])
     @login_required
     def project_simulate(project_id):
         p = Project.query.get_or_404(project_id)
+        
+        if not p.variables:
+            flash("Debe agregar al menos una variable antes de ejecutar la simulación", "warning")
+            return redirect(url_for("projects_list") + f"?open_config={project_id}")
+        
         iterations = int(request.form.get("iterations", 1000))
         seed = request.form.get("seed") or None
         variables = []
         for v in p.variables:
             variables.append({"name": v.name, "distribution": v.distribution, "params": v.params})
 
-        results = simulate_monte_carlo(variables, iterations=iterations, seed=seed)
+        try:
+            results = simulate_monte_carlo(variables, iterations=iterations, seed=seed)
+        except Exception as e:
+            flash(f"Error en la simulación: {e}", "danger")
+            return redirect(url_for("projects_list") + f"?open_config={project_id}")
 
         r = Report(project=p, name=f"Reporte {p.name} {datetime.utcnow().isoformat()}")
         db.session.add(r)
