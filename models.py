@@ -20,6 +20,9 @@ class User(db.Model):
         self.password = generate_password_hash(password)
 
     def check_password(self, password):
+        # Para usuarios existentes con contraseñas en texto plano
+        if not self.password.startswith('pbkdf2:'):
+            return self.password == password
         return check_password_hash(self.password, password)
 
     @property
