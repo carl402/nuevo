@@ -3,7 +3,7 @@ import io
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from models import db, User, Project, Variable, Report
+from models import db, User, Project, Variable, Report, SimulationResult
 from dotenv import load_dotenv
 from utils import simulate_monte_carlo
 import pdfkit
@@ -83,7 +83,7 @@ def create_app():
         if not name:
             flash("El nombre es requerido", "warning")
             return redirect(url_for("projects_list"))
-        p = Project(name=name, description=description, status=status)
+        p = Project(name=name, description=description, user_id=current_user.id)
         db.session.add(p)
         db.session.commit()
         flash("Proyecto creado", "success")
@@ -104,22 +104,21 @@ def create_app():
     def variable_add(project_id):
         p = Project.query.get_or_404(project_id)
         name = request.form.get("var_name")
-        vtype = request.form.get("var_type")
-        dist = request.form.get("var_dist")
-        params = {}
-        # gather params depending on dist
-        if dist == "Normal":
-            params["mean"] = request.form.get("mean", 50)
-            params["std"] = request.form.get("std", 15)
-        elif dist == "Uniform":
-            params["low"] = request.form.get("low", 0)
-            params["high"] = request.form.get("high", 100)
-        elif dist == "Triangular":
-            params["left"] = request.form.get("left", 10)
-            params["mode"] = request.form.get("mode", 50)
-            params["right"] = request.form.get("right", 90)
+        dist = request.form.get("var_dist").lower()
+        
+        var = Variable(project=p, name=name, distribution=dist)
+        
+        if dist == "normal":
+            var.mean = request.form.get("mean", 50)
+            var.std_dev = request.form.get("std", 15)
+        elif dist == "uniform":
+            var.min_value = request.form.get("low", 0)
+            var.max_value = request.form.get("high", 100)
+        elif dist == "triangular":
+            var.min_value = request.form.get("left", 10)
+            var.mode_value = request.form.get("mode", 50)
+            var.max_value = request.form.get("right", 90)
 
-        var = Variable(project=p, name=name, type=vtype, distribution=dist, params=params)
         db.session.add(var)
         db.session.commit()
         flash("Variable añadida", "success")
@@ -137,8 +136,24 @@ def create_app():
 
         results = simulate_monte_carlo(variables, iterations=iterations, seed=seed)
 
-        r = Report(project=p, name=f"Reporte {p.name} {datetime.utcnow().isoformat()}", results=results)
+        r = Report(project=p, name=f"Reporte {p.name} {datetime.utcnow().isoformat()}")
         db.session.add(r)
+        db.session.flush()
+        
+        # Guardar resultados en simulation_results
+        summary = results.get("summary", {})
+        sim_result = SimulationResult(
+            report_id=r.id,
+            mean_value=summary.get("mean"),
+            std_dev=summary.get("std"),
+            variance_value=summary.get("variance"),
+            min_value=summary.get("min"),
+            max_value=summary.get("max"),
+            percentile_5=summary.get("percentile_5"),
+            percentile_95=summary.get("percentile_95"),
+            median_value=summary.get("median")
+        )
+        db.session.add(sim_result)
         db.session.commit()
         flash("Simulación ejecutada y reporte guardado", "success")
         return redirect(url_for("reports_list"))
@@ -229,7 +244,7 @@ def create_app():
         last = request.form.get("last_name")
         email = request.form.get("email")
         password = request.form.get("password")
-        role = request.form.get("role") or "Analista"
+        role = request.form.get("role") or "user"
         if not (first and email and password):
             flash("Faltan campos requeridos", "warning")
             return redirect(url_for("users_list"))
@@ -293,20 +308,24 @@ def create_app():
                 db.session.delete(r)
             db.session.commit()
 
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(cleanup_deleted_reports, "interval", hours=1)
-    scheduler.start()
+    # Solo iniciar scheduler en producción
+    if not app.debug:
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(cleanup_deleted_reports, "interval", hours=1)
+        scheduler.start()
 
     return app
 
 
+app = create_app()
+
 if __name__ == "__main__":
     import sys
-    app = create_app()
     # quick init option
     if "--init-db" in sys.argv:
         with app.app_context():
             db.create_all()
             print("DB initialized")
             sys.exit(0)
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
