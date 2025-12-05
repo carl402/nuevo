@@ -1,13 +1,128 @@
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
 }
+
 #wrapper.toggled #sidebar-wrapper {
   margin-left: -250px;
 }
+
 #sidebar-wrapper {
   width: 250px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
+
 #page-content-wrapper {
   width: 100%;
 }
-.sidebar-heading { padding: 1rem 1.25rem; font-weight: bold; }
+
+.sidebar-heading { 
+  padding: 1rem 1.25rem; 
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.list-group-item {
+  border: none !important;
+  background: transparent !important;
+  color: rgba(255,255,255,0.8) !important;
+  transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+  background: rgba(255,255,255,0.1) !important;
+  color: white !important;
+  transform: translateX(5px);
+}
+
+.card {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.table {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.alert {
+  border-radius: 10px;
+  border: none;
+}
+
+.modal-content {
+  border-radius: 15px;
+  border: none;
+}
+
+.form-control, .form-select {
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.navbar {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.chart-container {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.stats-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
+  padding: 20px;
+  margin: 10px 0;
+}
+
+.stats-value {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.stats-label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  #sidebar-wrapper {
+    margin-left: -250px;
+  }
+  
+  #wrapper.toggled #sidebar-wrapper {
+    margin-left: 0;
+  }
+  
+  .card {
+    margin-bottom: 1rem;
+  }
+}

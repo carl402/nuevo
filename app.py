@@ -6,7 +6,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from models import db, User, Project, Variable, Report, SimulationResult
 from dotenv import load_dotenv
 from utils import simulate_monte_carlo
-import pdfkit
+from weasyprint import HTML, CSS
 from docx import Document
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -60,8 +60,13 @@ def create_app():
     @app.route("/dashboard")
     @login_required
     def dashboard():
-        projects = Project.query.limit(6).all()
-        return render_template("dashboard.html", projects=projects)
+        return redirect(url_for("projects_list"))
+
+    @app.route("/simulaciones")
+    @login_required
+    def simulaciones():
+        recent_reports = Report.query.order_by(Report.created_at.desc()).limit(10).all()
+        return render_template("simulaciones.html", reports=recent_reports)
 
     # Projects
     @app.route("/projects")
@@ -87,7 +92,7 @@ def create_app():
         db.session.add(p)
         db.session.commit()
         flash("Proyecto creado", "success")
-        return redirect(url_for("projects_list"))
+        return redirect(url_for("projects_list") + f"?open_config={p.id}")
 
     @app.route("/projects/<int:project_id>/delete", methods=["POST"])
     @login_required
@@ -156,7 +161,7 @@ def create_app():
         db.session.add(sim_result)
         db.session.commit()
         flash("Simulación ejecutada y reporte guardado", "success")
-        return redirect(url_for("reports_list"))
+        return redirect(url_for("report_view", report_id=r.id))
 
     # Reports
     @app.route("/reports")
@@ -195,10 +200,10 @@ def create_app():
     @login_required
     def report_download_pdf(report_id):
         r = Report.query.get_or_404(report_id)
-        html = render_template("report_view.html", report=r, pdf=True)
+        html = render_template("report_pdf.html", report=r)
         try:
-            pdf = pdfkit.from_string(html, False)
-            return send_file(io.BytesIO(pdf), mimetype="application/pdf", as_attachment=True, download_name=f"report_{r.id}.pdf")
+            pdf_file = HTML(string=html).write_pdf()
+            return send_file(io.BytesIO(pdf_file), mimetype="application/pdf", as_attachment=True, download_name=f"report_{r.id}.pdf")
         except Exception as e:
             flash(f"Error generando PDF: {e}", "danger")
             return redirect(url_for("report_view", report_id=report_id))

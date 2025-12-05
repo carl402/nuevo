@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ report.name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .stats { display: flex; justify-content: space-around; margin: 20px 0; }
+        .stat-box { text-align: center; padding: 10px; border: 1px solid #ddd; }
+        .chart { text-align: center; margin: 20px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ report.name }}</h1>
+        <p>Proyecto: {{ report.project.name }}</p>
+        <p>Generado: {{ report.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat-box">
+            <h3>{{ "%.2f"|format(report.results.summary.mean) }}</h3>
+            <p>Media</p>
+        </div>
+        <div class="stat-box">
+            <h3>{{ "%.2f"|format(report.results.summary.std) }}</h3>
+            <p>Desv. Estándar</p>
+        </div>
+        <div class="stat-box">
+            <h3>{{ "%.2f"|format(report.results.summary.min) }}</h3>
+            <p>Mínimo</p>
+        </div>
+        <div class="stat-box">
+            <h3>{{ "%.2f"|format(report.results.summary.max) }}</h3>
+            <p>Máximo</p>
+        </div>
+    </div>
+
+    {% if report.results.charts %}
+    <div class="chart">
+        <h2>Análisis Visual</h2>
+        <img src="data:image/png;base64,{{ report.results.charts.histogram_density }}" style="max-width: 100%;">
+    </div>
+    {% endif %}
+
+    <h2>Métricas Detalladas</h2>
+    <table>
+        <tr><th>Métrica</th><th>Valor</th></tr>
+        <tr><td>Media</td><td>{{ "%.4f"|format(report.results.summary.mean) }}</td></tr>
+        <tr><td>Mediana</td><td>{{ "%.4f"|format(report.results.summary.median) }}</td></tr>
+        <tr><td>Desviación Estándar</td><td>{{ "%.4f"|format(report.results.summary.std) }}</td></tr>
+        <tr><td>Varianza</td><td>{{ "%.4f"|format(report.results.summary.variance) }}</td></tr>
+        <tr><td>Mínimo</td><td>{{ "%.4f"|format(report.results.summary.min) }}</td></tr>
+        <tr><td>Máximo</td><td>{{ "%.4f"|format(report.results.summary.max) }}</td></tr>
+        <tr><td>Percentil 5%</td><td>{{ "%.4f"|format(report.results.summary.percentile_5) }}</td></tr>
+        <tr><td>Percentil 95%</td><td>{{ "%.4f"|format(report.results.summary.percentile_95) }}</td></tr>
+    </table>
+</body>
+</html>

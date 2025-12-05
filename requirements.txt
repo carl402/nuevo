@@ -3,10 +3,13 @@ flask-login==0.6.3
 flask-sqlalchemy==3.1.1
 sqlalchemy==2.0.25
 psycopg2-binary==2.9.9
-pdfkit==1.0.0
+weasyprint==61.2
 python-docx==1.1.0
 numpy==1.26.4
 pandas==2.2.3
+matplotlib==3.8.2
+seaborn==0.13.0
+scipy==1.11.4
 apscheduler==3.10.4
 python-dotenv==1.0.1
 werkzeug==3.0.1

@@ -1,5 +1,11 @@
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import seaborn as sns
+import base64
+import io
 from statistics import mean, stdev, variance
 
 
@@ -56,5 +62,52 @@ def simulate_monte_carlo(variables, iterations=1000, seed=None):
         "sample_count": int(iterations),
     }
 
-    # We return both the summary and a small sample of the distribution
-    return {"summary": summary, "samples_preview": total[:200].tolist()}
+    # Generar gráficos
+    charts = generate_charts(total)
+    
+    # Actualizar summary con percentiles individuales
+    summary.update({
+        "percentile_5": summary["percentiles"]["p5"],
+        "percentile_95": summary["percentiles"]["p95"],
+        "median": summary["percentiles"]["p50"]
+    })
+    
+    return {"summary": summary, "samples_preview": total[:200].tolist(), "charts": charts}
+
+
+def generate_charts(data):
+    """Genera histograma y curva de densidad como imágenes base64"""
+    plt.style.use('seaborn-v0_8')
+    
+    # Histograma
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    
+    # Histograma
+    ax1.hist(data, bins=30, alpha=0.7, color='skyblue', edgecolor='black')
+    ax1.set_title('Histograma de Resultados')
+    ax1.set_xlabel('Valor')
+    ax1.set_ylabel('Frecuencia')
+    ax1.grid(True, alpha=0.3)
+    
+    # Curva de densidad
+    ax2.hist(data, bins=30, density=True, alpha=0.7, color='lightgreen', edgecolor='black')
+    from scipy import stats
+    x = np.linspace(data.min(), data.max(), 100)
+    kde = stats.gaussian_kde(data)
+    ax2.plot(x, kde(x), 'r-', linewidth=2, label='Densidad')
+    ax2.set_title('Curva de Densidad')
+    ax2.set_xlabel('Valor')
+    ax2.set_ylabel('Densidad')
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    
+    # Convertir a base64
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+    buffer.seek(0)
+    chart_base64 = base64.b64encode(buffer.getvalue()).decode()
+    plt.close()
+    
+    return {"histogram_density": chart_base64}
