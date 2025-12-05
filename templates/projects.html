@@ -3,7 +3,7 @@
 {% block content %}
 <div class="flex justify-between items-center mb-6">
   <h1 class="text-3xl font-bold text-gray-800">
-    <i class="fas fa-folder mr-2 text-blue-600"></i>📁 Proyectos
+    📁 Proyectos
   </h1>
 </div>
 
@@ -57,7 +57,7 @@
             <form method="post" action="{{ url_for('project_simulate', project_id=p.id) }}" style="display:inline">
               <input type="hidden" name="iterations" value="1000">
               <button class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
-                ▶️ Ejecutar
+                Ejecutar
               </button>
             </form>
             <form method="post" action="{{ url_for('projects_delete', project_id=p.id) }}" style="display:inline" onsubmit="return confirm('¿Eliminar proyecto?')">
@@ -99,7 +99,7 @@
       
       <!-- Agregar Variable -->
       <div class="bg-white border rounded-xl p-4">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800">➕ Agregar Variable</h3>
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Agregar Variable</h3>
         <form id="varForm{{ p.id }}" onsubmit="addVariable(event, '{{ p.id }}'); return false;" class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <input name="var_name" placeholder="Nombre de la variable" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
@@ -114,14 +114,14 @@
             <input name="std" placeholder="Desv. Est." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" value="15">
           </div>
           <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold">
-            ➕ Agregar Variable
+            Agregar Variable
           </button>
         </form>
       </div>
       
       <!-- Ejecutar Simulación -->
-      <div class="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-4">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800">▶️ Ejecutar Simulación</h3>
+      <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Ejecutar Simulación</h3>
         <form method="post" action="{{ url_for('project_simulate', project_id=p.id) }}" class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <input name="iterations" placeholder="Número de iteraciones" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500" value="1000">
@@ -129,7 +129,7 @@
           </div>
           <div class="flex gap-4">
             <button class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 font-semibold flex-1">
-              ▶️ Ejecutar Simulación
+              Ejecutar Simulación
             </button>
             <button type="button" onclick="closeModal('configModal{{ p.id }}')" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700">
               Cerrar

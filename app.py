@@ -221,8 +221,7 @@ def create_app():
         r = Report.query.get_or_404(report_id)
         html = render_template("report_pdf.html", report=r)
         try:
-            html_doc = HTML(string=html)
-            pdf_file = html_doc.write_pdf()
+            pdf_file = HTML(string=html, base_url=request.url_root).write_pdf()
             return send_file(io.BytesIO(pdf_file), mimetype="application/pdf", as_attachment=True, download_name=f"report_{r.id}.pdf")
         except Exception as e:
             flash(f"Error generando PDF: {e}", "danger")
