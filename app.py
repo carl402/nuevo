@@ -164,7 +164,7 @@ def create_app():
     def reports_list():
         q = request.args.get("project")
         date_filter = request.args.get("date")
-        query = Report.query.filter(Report.deleted_at.is_(None))
+        query = Report.query
         if q:
             query = query.join(Project).filter(Project.name.ilike(f"%{q}%"))
         if date_filter:
@@ -174,9 +174,7 @@ def create_app():
             except ValueError:
                 pass
         reports = query.order_by(Report.created_at.desc()).all()
-
-        deleted = Report.query.filter(Report.deleted_at.is_not(None)).all()
-        return render_template("reports.html", reports=reports, deleted=deleted)
+        return render_template("reports.html", reports=reports, deleted=[])
 
     @app.route("/reports/<int:report_id>")
     @login_required
@@ -188,18 +186,9 @@ def create_app():
     @login_required
     def report_delete(report_id):
         r = Report.query.get_or_404(report_id)
-        r.deleted_at = datetime.utcnow()
+        db.session.delete(r)
         db.session.commit()
-        flash("Reporte movido a papelera", "warning")
-        return redirect(url_for("reports_list"))
-
-    @app.route("/reports/<int:report_id>/recover", methods=["POST"])
-    @login_required
-    def report_recover(report_id):
-        r = Report.query.get_or_404(report_id)
-        r.deleted_at = None
-        db.session.commit()
-        flash("Reporte recuperado", "success")
+        flash("Reporte eliminado", "info")
         return redirect(url_for("reports_list"))
 
     @app.route("/reports/<int:report_id>/download/pdf")
@@ -299,20 +288,7 @@ def create_app():
             db.create_all()
             print("DB initialized")
 
-    # Background cleanup job
-    def cleanup_deleted_reports():
-        with app.app_context():
-            cutoff = datetime.utcnow() - timedelta(hours=24)
-            old = Report.query.filter(Report.deleted_at.isnot(None), Report.deleted_at < cutoff).all()
-            for r in old:
-                db.session.delete(r)
-            db.session.commit()
 
-    # Solo iniciar scheduler en producción
-    if not app.debug:
-        scheduler = BackgroundScheduler()
-        scheduler.add_job(cleanup_deleted_reports, "interval", hours=1)
-        scheduler.start()
 
     return app
 

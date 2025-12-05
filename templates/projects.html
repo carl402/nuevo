@@ -22,12 +22,7 @@
       <div class="mb-2">
         <input name="description" placeholder="Descripción" class="form-control" />
       </div>
-      <div class="mb-2">
-        <select name="status" class="form-select">
-          <option value="Activo">Activo</option>
-          <option value="Inactivo">Inactivo</option>
-        </select>
-      </div>
+
       <button class="btn btn-success">Crear Proyecto</button>
     </form>
   </div>
@@ -35,26 +30,20 @@
 
 <table class="table">
   <thead>
-    <tr><th>Nombre</th><th>Descripción</th><th>Estado</th><th>Variables</th><th>Acciones</th></tr>
+    <tr><th>Nombre</th><th>Descripción</th><th>Fecha</th><th>Variables</th><th>Acciones</th></tr>
   </thead>
   <tbody>
     {% for p in projects %}
       <tr>
         <td>{{ p.name }}</td>
         <td>{{ p.description }}</td>
-        <td>
-          {% if p.status == 'Activo' %}
-            <span class="badge bg-success">Activo</span>
-          {% else %}
-            <span class="badge bg-danger">Inactivo</span>
-          {% endif %}
-        </td>
+        <td>{{ p.created_at.strftime('%Y-%m-%d') if p.created_at else 'N/A' }}</td>
         <td>{{ p.variables|length }}</td>
         <td>
           <form method="post" action="{{ url_for('projects_delete', project_id=p.id) }}" style="display:inline">
             <button class="btn btn-sm btn-danger">Eliminar</button>
           </form>
-          <a class="btn btn-sm btn-primary" href="#">Configurar</a>
+          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#configModal{{ p.id }}">Configurar</button>
           <form method="post" action="{{ url_for('project_simulate', project_id=p.id) }}" style="display:inline">
             <input type="hidden" name="iterations" value="1000">
             <button class="btn btn-sm btn-outline-success">Ejecutar</button>
@@ -64,5 +53,70 @@
     {% endfor %}
   </tbody>
 </table>
+
+<!-- Modales de configuración -->
+{% for p in projects %}
+<div class="modal fade" id="configModal{{ p.id }}">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5>Configurar {{ p.name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h6>Variables ({{ p.variables|length }})</h6>
+        {% for v in p.variables %}
+          <div class="alert alert-info">{{ v.name }} - {{ v.distribution|title }}</div>
+        {% endfor %}
+        
+        <h6>Agregar Variable</h6>
+        <form method="post" action="{{ url_for('variable_add', project_id=p.id) }}">
+          <div class="row mb-2">
+            <div class="col-6"><input name="var_name" placeholder="Nombre" class="form-control" required></div>
+            <div class="col-6">
+              <select name="var_dist" class="form-select" onchange="showParams(this, {{ p.id }})">
+                <option value="normal">Normal</option>
+                <option value="uniform">Uniforme</option>
+                <option value="triangular">Triangular</option>
+              </select>
+            </div>
+          </div>
+          <div id="params{{ p.id }}">
+            <div class="row mb-2">
+              <div class="col-6"><input name="mean" placeholder="Media" class="form-control" value="50"></div>
+              <div class="col-6"><input name="std" placeholder="Desv. Est." class="form-control" value="15"></div>
+            </div>
+          </div>
+          <button class="btn btn-success">Agregar Variable</button>
+        </form>
+        
+        <hr>
+        <h6>Ejecutar Simulación</h6>
+        <form method="post" action="{{ url_for('project_simulate', project_id=p.id) }}">
+          <div class="row mb-2">
+            <div class="col-6"><input name="iterations" placeholder="Iteraciones" class="form-control" value="1000"></div>
+            <div class="col-6"><input name="seed" placeholder="Semilla (opcional)" class="form-control"></div>
+          </div>
+          <button class="btn btn-success">Ejecutar Simulación</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<script>
+function showParams(select, projectId) {
+  const params = document.getElementById('params' + projectId);
+  const dist = select.value;
+  if (dist === 'normal') {
+    params.innerHTML = '<div class="row mb-2"><div class="col-6"><input name="mean" placeholder="Media" class="form-control" value="50"></div><div class="col-6"><input name="std" placeholder="Desv. Est." class="form-control" value="15"></div></div>';
+  } else if (dist === 'uniform') {
+    params.innerHTML = '<div class="row mb-2"><div class="col-6"><input name="low" placeholder="Mínimo" class="form-control" value="0"></div><div class="col-6"><input name="high" placeholder="Máximo" class="form-control" value="100"></div></div>';
+  } else if (dist === 'triangular') {
+    params.innerHTML = '<div class="row mb-2"><div class="col-4"><input name="left" placeholder="Mínimo" class="form-control" value="10"></div><div class="col-4"><input name="mode" placeholder="Moda" class="form-control" value="50"></div><div class="col-4"><input name="right" placeholder="Máximo" class="form-control" value="90"></div></div>';
+  }
+}
+</script>
 
 {% endblock %}

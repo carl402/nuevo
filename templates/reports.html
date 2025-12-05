@@ -38,20 +38,6 @@
   </tbody>
 </table>
 
-{% if deleted %}
-  <div class="alert alert-warning">
-    <h5>Papelera</h5>
-    <ul>
-      {% for d in deleted %}
-        <li>
-          {{ d.name }} - eliminado {{ d.deleted_at }}
-          <form method="post" action="{{ url_for('report_recover', report_id=d.id) }}" style="display:inline">
-            <button class="btn btn-sm btn-success">Recuperar</button>
-          </form>
-        </li>
-      {% endfor %}
-    </ul>
-  </div>
-{% endif %}
+
 
 {% endblock %}

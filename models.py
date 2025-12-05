@@ -88,7 +88,6 @@ class Report(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey("projects.id"), nullable=False)
     name = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    deleted_at = db.Column(db.DateTime, nullable=True)
 
     @property
     def results(self):
