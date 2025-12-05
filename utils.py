@@ -110,3 +110,43 @@ def generate_charts(data):
     except Exception as e:
         print(f"Error generando gráficos: {e}")
         return {}
+
+
+def generate_simple_chart(simulation_result):
+    """Genera un gráfico simple basado en los resultados guardados"""
+    try:
+        # Crear datos simulados basados en las estadísticas guardadas
+        mean = float(simulation_result.mean_value or 0)
+        std = float(simulation_result.std_dev or 1)
+        
+        # Generar datos de muestra para el gráfico
+        import numpy as np
+        data = np.random.normal(mean, std, 1000)
+        
+        # Crear gráfico simple
+        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+        ax.hist(data, bins=30, alpha=0.7, color='skyblue', edgecolor='black')
+        ax.set_title('Distribución de Resultados Monte Carlo')
+        ax.set_xlabel('Valor')
+        ax.set_ylabel('Frecuencia')
+        ax.grid(True, alpha=0.3)
+        
+        # Añadir líneas de estadísticas
+        ax.axvline(mean, color='red', linestyle='--', label=f'Media: {mean:.2f}')
+        ax.axvline(mean - std, color='orange', linestyle='--', alpha=0.7, label=f'-1σ: {mean-std:.2f}')
+        ax.axvline(mean + std, color='orange', linestyle='--', alpha=0.7, label=f'+1σ: {mean+std:.2f}')
+        ax.legend()
+        
+        plt.tight_layout()
+        
+        # Convertir a base64
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+        buffer.seek(0)
+        chart_base64 = base64.b64encode(buffer.getvalue()).decode()
+        plt.close()
+        
+        return {"histogram_density": chart_base64}
+    except Exception as e:
+        print(f"Error generando gráfico simple: {e}")
+        return {}

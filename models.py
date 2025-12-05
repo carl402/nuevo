@@ -128,5 +128,5 @@ class SimulationResult(db.Model):
     percentile_5 = db.Column(db.Numeric(15, 6))
     percentile_95 = db.Column(db.Numeric(15, 6))
     median_value = db.Column(db.Numeric(15, 6))
-    chart_data = db.Column(db.Text)  # Para guardar gráficos base64
+    chart_data = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
